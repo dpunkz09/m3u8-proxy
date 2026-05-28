@@ -18,49 +18,52 @@ app.use((req, res, next) => {
   next();
 });
 
+// Serve static player files from ./public
+app.use(express.static('public'));
+
 /**
  * Rewrite URLs in M3U8 content
  * @param {string} content - M3U8 file content
  * @param {string} baseUrl - Base URL to use for relative URLs
- * @param {string} proxyHost - The proxy host (e.g., localhost:8080)
+ * @param {string} proxyBase - The full proxy base (e.g., http://localhost:8080)
  * @returns {string} - Modified M3U8 content
  */
-function rewriteM3U8Content(content, baseUrl, proxyHost) {
+function rewriteM3U8Content(content, baseUrl, proxyBase) {
   const baseUrlObj = new URL(baseUrl);
   const baseOrigin = baseUrlObj.origin;
-  
+
   const lines = content.split('\n');
-  
+
   const rewrittenLines = lines.map(line => {
     // Skip empty lines and tag lines
     if (!line.trim() || line.startsWith('#')) {
       return line;
     }
-    
+
     // Check if it's a URL (relative or absolute)
     if (line.includes('://')) {
       // Absolute URL - rewrite through proxy
       const encodedUrl = encodeURIComponent(line.trim());
-      return `https://${proxyHost}/proxy?url=${encodedUrl}`;
+      return `${proxyBase}/proxy?url=${encodedUrl}`;
     } else if (line.trim().startsWith('/')) {
       // Relative URL starting with / (absolute path)
       const fullUrl = new URL(line.trim(), baseOrigin).href;
       const encodedUrl = encodeURIComponent(fullUrl);
-      return `https://${proxyHost}/proxy?url=${encodedUrl}`;
+      return `${proxyBase}/proxy?url=${encodedUrl}`;
     } else if (line.trim() && !line.startsWith('#')) {
       // Relative URL (relative path)
       try {
         const fullUrl = new URL(line.trim(), baseUrl).href;
         const encodedUrl = encodeURIComponent(fullUrl);
-        return `https://${proxyHost}/proxy?url=${encodedUrl}`;
+        return `${proxyBase}/proxy?url=${encodedUrl}`;
       } catch (e) {
         return line;
       }
     }
-    
+
     return line;
   });
-  
+
   return rewrittenLines.join('\n');
 }
 
@@ -102,11 +105,11 @@ app.get('/proxy', async (req, res) => {
     
     // Check if it's an M3U8 file
     if (content.includes('#EXTM3U') || targetUrl.includes('.m3u8')) {
-      // Get the proxy host from request
-      const proxyHost = req.get('host');
-      
-      // Rewrite URLs in the content
-      content = rewriteM3U8Content(content, targetUrl, proxyHost);
+        // Build full proxy base (protocol + host) and rewrite URLs
+        const proxyBase = `${req.protocol}://${req.get('host')}`;
+
+        // Rewrite URLs in the content
+        content = rewriteM3U8Content(content, targetUrl, proxyBase);
       
       res.setHeader('Content-Type', 'application/vnd.apple.mpegurl; charset=utf-8');
     } else {
@@ -158,6 +161,6 @@ app.get('/', (req, res) => {
 
 // Start server
 app.listen(PORT, () => {
-  console.log(`M3U8 Proxy server running on https://localhost:${PORT}`);
-  console.log(`Usage: https://localhost:${PORT}/proxy?url={m3u8_url}`);
+  console.log(`M3U8 Proxy server running on http://localhost:${PORT}`);
+  console.log(`Usage: http://localhost:${PORT}/proxy?url={m3u8_url}`);
 });
