@@ -2,6 +2,8 @@
 
 A lightweight Node.js/Express proxy server for M3U8 streaming URLs that bypasses CORS issues and rewrites streaming URLs.
 
+[![Deploy to Vercel](https://vercel.com/button)](https://vercel.com/new/git/external)
+
 ## Features
 
 - ✅ **CORS Bypass** - Proxy CORS-blocked M3U8 files
