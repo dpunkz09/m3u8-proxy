@@ -41,18 +41,18 @@ function rewriteM3U8Content(content, baseUrl, proxyHost) {
     if (line.includes('://')) {
       // Absolute URL - rewrite through proxy
       const encodedUrl = encodeURIComponent(line.trim());
-      return `http://${proxyHost}/proxy?url=${encodedUrl}`;
+      return `https://${proxyHost}/proxy?url=${encodedUrl}`;
     } else if (line.trim().startsWith('/')) {
       // Relative URL starting with / (absolute path)
       const fullUrl = new URL(line.trim(), baseOrigin).href;
       const encodedUrl = encodeURIComponent(fullUrl);
-      return `http://${proxyHost}/proxy?url=${encodedUrl}`;
+      return `https://${proxyHost}/proxy?url=${encodedUrl}`;
     } else if (line.trim() && !line.startsWith('#')) {
       // Relative URL (relative path)
       try {
         const fullUrl = new URL(line.trim(), baseUrl).href;
         const encodedUrl = encodeURIComponent(fullUrl);
-        return `http://${proxyHost}/proxy?url=${encodedUrl}`;
+        return `https://${proxyHost}/proxy?url=${encodedUrl}`;
       } catch (e) {
         return line;
       }
@@ -146,7 +146,7 @@ app.get('/', (req, res) => {
   res.json({
     name: 'M3U8 Proxy Server',
     usage: 'GET /proxy?url={m3u8_url}',
-    example: 'http://localhost:8080/proxy?url=https://example.com/stream.m3u8',
+    example: 'https://localhost:8080/proxy?url=https://example.com/stream.m3u8',
     features: [
       'Bypass CORS issues',
       'Rewrite M3U8 streaming URLs',
@@ -158,6 +158,6 @@ app.get('/', (req, res) => {
 
 // Start server
 app.listen(PORT, () => {
-  console.log(`M3U8 Proxy server running on http://localhost:${PORT}`);
-  console.log(`Usage: http://localhost:${PORT}/proxy?url={m3u8_url}`);
+  console.log(`M3U8 Proxy server running on https://localhost:${PORT}`);
+  console.log(`Usage: https://localhost:${PORT}/proxy?url={m3u8_url}`);
 });
